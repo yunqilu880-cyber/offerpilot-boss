@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="color-scheme" content="light"><title>OfferPilot · 求职投递工作台</title><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><script src="/app.js" defer></script></head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-icon">↗</span><span>OfferPilot<small>让每一次投递，更有方向</small></span></a>
+    <div class="workspace-label">个人求职工作空间</div>
+    <nav aria-label="主导航"><button class="nav active" data-view="jobs"><span>▦</span>职位工作台</button><button class="nav" data-view="settings"><span>◎</span>投递偏好</button><button class="nav" data-view="activity"><span>↗</span>活动记录</button></nav>
+    <div class="sidebar-bottom"><span class="local-dot"></span>本地运行 · 数据留在你的电脑<small>OfferPilot / v0.1 · 实验版本</small></div>
+  </aside>
+  <main>
+    <header class="topbar"><span>工作空间 <span class="slash">/</span> <b id="breadcrumb">职位工作台</b></span><button class="button subtle" id="open-browser"><span class="local-dot" id="browser-dot"></span><span id="browser-label">连接 BOSS 浏览器</span> ↗</button></header>
+    <section id="jobs-view" class="view">
+      <div class="page-heading"><div class="eyebrow">YOUR NEXT CHAPTER</div><div class="title-row"><div><h1>好机会，值得精准投递<span class="accent">。</span></h1><p>把精力留给合适的职位，让重复的事自动完成。</p></div><button class="button primary" id="add-job">＋ 添加职位</button></div></div>
+      <div class="stats"><article><span>已收藏职位</span><strong id="stat-total">0</strong><small>你的机会候选池</small></article><article><span>符合投递偏好</span><strong id="stat-match">0</strong><small>按技能与条件筛选</small></article><article><span>等待处理</span><strong id="stat-queue">0</strong><small>按加入顺序逐个执行</small></article><article><span>已发送简历</span><strong id="stat-sent">0</strong><small>以发送回执为准</small></article></div>
+      <div class="workflow"><div class="workflow-symbol">↗</div><div class="workflow-content"><h2>你的下一份工作，从这里开始</h2><p>① 连接并扫码登录　 ② 打开职位详情并采集　 ③ 筛选加入队列　 ④ 开始执行</p></div><button class="button" id="capture">采集当前职位 ↙</button></div>
+      <div class="section-heading"><div><h2>机会清单 <span id="job-count" class="count">0</span></h2><p>挑选适合你的机会，查看每个职位的匹配原因。</p></div><a class="text-link" href="/api/export" download>导出 CSV ↓</a></div>
+      <div class="toolbar"><div class="tabs" aria-label="职位筛选"><button data-filter="all" class="selected">全部机会</button><button data-filter="eligible">高匹配</button><button data-filter="queued">投递队列</button><button data-filter="needs_review">待核对</button></div><input id="search" type="search" placeholder="搜索职位或公司" aria-label="搜索职位或公司"></div>
+      <div id="job-list" class="job-list"></div>
+      <div class="queue-bar"><div><span class="local-dot"></span><strong id="runner-message">等待开始</strong><small id="runner-policy">默认仅发起沟通</small></div><div class="queue-actions"><button class="button" id="queue-selected">加入队列 <span id="selection-count">0</span></button><button class="button primary" id="start">▶ 开始执行</button><button class="button danger" id="stop" hidden>停止执行</button></div></div>
+      <p class="footnote">BOSS 页面适配为实验功能。遇到验证码、页面变化或发送结果不明，程序会暂停并保留待核对记录。</p>
+    </section>
+    <section id="settings-view" class="view" hidden>
+      <div class="page-heading"><div class="eyebrow">MAKE IT PERSONAL</div><h1>为你而设的投递偏好<span class="accent">。</span></h1><p>明确想找什么，才更容易遇到合适的机会。</p></div>
+      <form id="settings-form" class="settings-grid">
+        <section class="panel"><h2>01 / 职位匹配</h2><label>目标技能 / 职位关键词<input name="keywords" placeholder="React, TypeScript, 前端"><small>以逗号分隔。匹配分 = 命中关键词数 ÷ 总关键词数。</small></label><label>期望城市<input name="cities" placeholder="上海, 杭州"><small>留空表示不限城市；采集不到城市时可手动导入完整信息。</small></label><div class="form-row"><label>最低月薪（K）<input name="minSalary" type="number" min="0" max="1000" required><small>0 表示不限</small></label><label>最低匹配分<input name="threshold" type="number" min="0" max="100" required></label></div><label>排除的公司关键词<input name="excludedCompanies" placeholder="以逗号分隔"></label></section>
+        <section class="panel"><h2>02 / 执行策略</h2><div class="form-row"><label>每天最多尝试<input name="dailyLimit" type="number" min="1" max="100" required><small>按北京时间统计，失败也计入</small></label><label>投递间隔（秒）<input name="intervalSeconds" type="number" min="30" max="3600" required></label></div><label>浏览器<select name="browser"><option value="chromium">Chromium（需安装）</option><option value="chrome">本机 Chrome</option><option value="msedge">本机 Microsoft Edge</option></select></label><label>执行模式<select name="mode"><option value="communicate">仅发起沟通</option><option value="resume">发起沟通并发送指定附件简历</option></select></label><label>BOSS 附件简历完整名称<input name="resumeName" placeholder="例如：张三-前端开发.pdf"><small>先在 BOSS 上传简历。只有唯一匹配文件、职位、公司并确认回执，才记为发送成功。不同简历可分批切换名称使用。</small></label></section>
+        <div class="settings-footer"><p>偏好在本地保存。更换浏览器需要关闭原浏览器后重新连接。</p><button class="button primary" type="submit">保存偏好</button></div>
+      </form>
+    </section>
+    <section id="activity-view" class="view" hidden><div class="page-heading"><div class="eyebrow">EVERY STEP COUNTS</div><h1>每一步，都有记录<span class="accent">。</span></h1><p>保留最近 100 条活动，未知结果留给人工核对。</p></div><div class="panel" id="activity-list"></div></section>
+  </main>
+  <dialog id="job-dialog"><form id="job-form"><div class="dialog-title"><h2>添加一个新机会</h2><button class="icon-button" type="button" id="close-dialog" aria-label="关闭">×</button></div><p>也可以在已连接的 BOSS 浏览器打开详情，点击「采集当前职位」。</p><label>职位链接<input name="url" type="url" required placeholder="https://www.zhipin.com/job_detail/…html"></label><div class="form-row"><label>职位名称<input name="title" required maxlength="300"></label><label>公司名称<input name="company" required maxlength="300"></label></div><div class="form-row"><label>城市<input name="city" placeholder="上海"></label><label>薪资<input name="salary" placeholder="20-35K"></label></div><label>职位描述<textarea name="description" rows="5" required placeholder="粘贴职位描述，用于关键词匹配"></textarea></label><button class="button primary full" type="submit">保存职位</button></form></dialog>
+  <dialog id="start-dialog"><div class="dialog-title"><h2>确认本轮投递</h2><button class="icon-button" id="close-start" aria-label="关闭">×</button></div><p id="start-summary"></p><p>执行期间保持 BOSS 浏览器打开。验证码请手动完成；暂停后可在活动记录中核对结果。</p><button id="confirm-start" class="button primary full">确认并开始执行</button></dialog>
+  <div id="toast" role="status" hidden></div>
+</body></html>

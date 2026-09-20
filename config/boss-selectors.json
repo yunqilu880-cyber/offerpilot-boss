@@ -1,0 +1,14 @@
+{
+  "jobTitle": ".job-banner .name h1, .job-banner h1, .job-detail-header .job-name",
+  "company": ".sider-company .company-info a, .sider-company .company-name, .job-detail-company .company-name",
+  "city": ".job-banner .text-city, .job-banner .info-primary p a[href*='city'], .job-detail-header .job-area",
+  "salary": ".job-banner .salary, .job-detail-header .job-salary",
+  "description": ".job-sec-text, .job-detail-body .job-detail-section",
+  "chatPanel": ".chat-conversation, .chat-window",
+  "chatJobTitle": ".job-name, .job-title",
+  "chatCompany": ".company-name",
+  "sentMessages": ".message-item.is-self, .chat-message-item.message-right",
+  "resumeDialog": "[role='dialog'], .dialog-container, .dialog-wrap",
+  "resumeRow": ".resume-item, .attachment-item",
+  "resumeSuccessText": "已发送附件简历"
+}
