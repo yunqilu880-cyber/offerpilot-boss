@@ -25,7 +25,8 @@ export function createApp(store, adapter) {
   });
   app.use(express.json({ limit: '1mb' }));
   app.use(express.static(join(root, 'public')));
-  app.get('/api/state', (req, res) => res.json({ settings: store.settings(), jobs: store.jobs(), events: store.events(), runner: runner.state() }));
+  app.get('/api/state', (req, res) => res.json({ settings: store.settings(), jobs: store.jobs().map(job => ({ ...job, tracking: store.tracking(job.id) })), events: store.events(), runner: runner.state() }));
+  app.patch('/api/jobs/:id/tracking', (req, res) => res.json(store.saveTracking(req.params.id, req.body)));
   app.put('/api/settings', (req, res) => {
     if (runner.running || browserBusy) throw new Error('请停止队列并等待浏览器操作结束后再修改偏好');
     res.json(store.saveSettings(req.body));
@@ -54,7 +55,7 @@ export function createApp(store, adapter) {
   app.post('/api/runner/stop', (req, res) => { runner.stop(); res.json(runner.state()); });
   app.get('/api/export', (req, res) => {
     const quote = value => '"' + String(value ?? '').replace(/^[=+@\-\t\r]/, "'$&").replaceAll('"', '""') + '"';
-    const rows = [['职位', '公司', '城市', '薪资', '匹配分', '状态', '备注', '链接'], ...store.jobs().map(j => [j.title, j.company, j.city, j.salary, j.match.score, j.status, j.note, j.url])];
+    const rows = [['职位', '公司', '城市', '薪资', '匹配分', '投递状态', '执行备注', '链接', '收藏', '手动求职阶段', '跟进日期', '个人备注'], ...store.jobs().map(j => { const t = store.tracking(j.id); return [j.title, j.company, j.city, j.salary, j.match.score, j.status, j.note, j.url, t.favorite ? '是' : '否', t.stage, t.followUp, t.notes]; })];
     res.type('text/csv').attachment('offerpilot-jobs.csv').send('\ufeff' + rows.map(row => row.map(quote).join(',')).join('\r\n'));
   });
   app.use((err, req, res, next) => { res.status(400).json({ error: err.message || '操作失败' }); });

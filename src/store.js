@@ -9,6 +9,7 @@ export class Store {
       CREATE TABLE IF NOT EXISTS settings (id INTEGER PRIMARY KEY CHECK(id=1), value TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS jobs (id TEXT PRIMARY KEY, url TEXT UNIQUE NOT NULL, data TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'saved', note TEXT NOT NULL DEFAULT '', queue_order INTEGER NOT NULL DEFAULT 0, created TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY, job_id TEXT, kind TEXT NOT NULL, message TEXT NOT NULL, created TEXT NOT NULL, day TEXT NOT NULL);
+      CREATE TABLE IF NOT EXISTS tracking (job_id TEXT PRIMARY KEY, value TEXT NOT NULL);
     `);
     this.db.prepare('INSERT OR IGNORE INTO settings VALUES(1, ?)').run(JSON.stringify(defaults));
     this.db.prepare("UPDATE jobs SET status='needs_review', note='程序中断，结果未知；请在 BOSS 核对后再操作' WHERE status='running'").run();
@@ -24,6 +25,23 @@ export class Store {
     return this.db.prepare('SELECT * FROM jobs ORDER BY created DESC').all().map(row => ({ ...JSON.parse(row.data), id: row.id, status: row.status, note: row.note, queueOrder: row.queue_order, created: row.created, attempted: Boolean(this.db.prepare("SELECT 1 FROM events WHERE job_id=? AND kind='attempt' LIMIT 1").get(row.id)), match: evaluate(JSON.parse(row.data), s) }));
   }
   get(id) { return this.jobs().find(j => j.id === id); }
+  tracking(id) {
+    const row = this.db.prepare('SELECT value FROM tracking WHERE job_id=?').get(id);
+    return row ? JSON.parse(row.value) : { favorite: false, stage: 'interested', notes: '', followUp: '' };
+  }
+  saveTracking(id, input) {
+    if (!this.get(id)) throw new Error('职位不存在');
+    if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('跟进信息格式错误');
+    const allowed = ['favorite', 'stage', 'notes', 'followUp'];
+    if (Object.keys(input).some(key => !allowed.includes(key))) throw new Error('不支持的跟进字段');
+    const value = { ...this.tracking(id), ...input };
+    if (typeof value.favorite !== 'boolean') throw new Error('收藏状态应为布尔值');
+    if (!['interested', 'applied', 'interview', 'offer', 'closed'].includes(value.stage)) throw new Error('未知求职阶段');
+    if (typeof value.notes !== 'string' || value.notes.length > 10000) throw new Error('备注最多 10000 字');
+    if (typeof value.followUp !== 'string' || (value.followUp && (!/^\d{4}-\d{2}-\d{2}$/.test(value.followUp) || !Number.isFinite(Date.parse(value.followUp)) || new Date(value.followUp).toISOString().slice(0, 10) !== value.followUp))) throw new Error('跟进日期无效');
+    this.db.prepare('INSERT INTO tracking(job_id,value) VALUES(?,?) ON CONFLICT(job_id) DO UPDATE SET value=excluded.value').run(id, JSON.stringify(value));
+    return value;
+  }
   add(input) {
     const job = normalizeJob(input);
     const old = this.db.prepare('SELECT id FROM jobs WHERE url=?').get(job.url);

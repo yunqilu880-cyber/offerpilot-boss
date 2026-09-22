@@ -1,10 +1,12 @@
 {
   "name": "offerpilot-boss",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "本地运行的 BOSS 直聘精准投递工作台",
   "type": "module",
-  "engines": { "node": ">=24" },
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
@@ -12,6 +14,9 @@
     "test:browser": "node --test test/browser/*.test.js",
     "browser:install": "playwright install chromium"
   },
-  "dependencies": { "express": "^5.1.0", "playwright": "^1.55.0" },
+  "dependencies": {
+    "express": "^5.1.0",
+    "playwright": "^1.55.0"
+  },
   "license": "MIT"
 }
